@@ -1,124 +1,256 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#07111f">
-  <title>JARVIS — Assistente personale</title>
-  <style>
-    :root { color-scheme: dark; --cyan:#58d8ff; --muted:#9bb1c5; }
-    * { box-sizing:border-box }
-    body {
-      margin:0; min-height:100vh; color:#eaf7ff;
-      background: radial-gradient(circle at 50% 35%, #12334b 0, #091827 38%, #050b13 78%);
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-      display:flex; justify-content:center; align-items:center; padding:24px;
-    }
-    main { width:min(100%,480px); text-align:center }
-    .top { letter-spacing:.28em; color:var(--cyan); font-size:12px; }
-    h1 { font-size:34px; letter-spacing:.18em; margin:10px 0 4px; font-weight:500 }
-    .sub { color:var(--muted); font-size:14px }
-    .orb-wrap { margin:48px auto 28px; width:220px; height:220px; display:grid; place-items:center; position:relative }
-    .ring { position:absolute; inset:0; border:1px solid #58d8ff66; border-radius:50%; box-shadow:0 0 35px #1db9ff22,inset 0 0 35px #1db9ff18 }
-    .ring:before,.ring:after { content:""; position:absolute; inset:13px; border:1px dashed #58d8ff66; border-radius:50%; animation:spin 18s linear infinite }
-    .ring:after { inset:29px; border-style:solid; opacity:.45; animation-direction:reverse; animation-duration:12s }
-    @keyframes spin { to { transform:rotate(360deg) } }
-    #talk { width:145px; height:145px; border-radius:50%; border:1px solid var(--cyan); color:white; background:radial-gradient(circle,#1b6687,#0a2439 68%); box-shadow:0 0 28px #25caff66,inset 0 0 25px #53dfff44; font-size:15px; cursor:pointer; z-index:1 }
-    #talk:active { transform:scale(.97) }
-    body.listening .ring { box-shadow:0 0 55px #48dcff88,inset 0 0 40px #48dcff44 }
-    #status { min-height:24px; color:var(--cyan); font-size:14px }
-    .panel { text-align:left; background:#0b1a29cc; border:1px solid #5acfff33; border-radius:16px; padding:16px; margin-top:24px }
-    .label { color:var(--muted); text-transform:uppercase; letter-spacing:.12em; font-size:10px; margin-bottom:8px }
-    #transcript,#reply { min-height:24px; line-height:1.5; overflow-wrap:anywhere }
-    .note { margin-top:18px; color:#849caf; font-size:11px; line-height:1.5 }
-    .small { color:#7f9bb0; font-size:12px; margin-top:14px }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050b18">
+<title>JARVIS Assistant</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #102b48 0%, #050b18 65%);
+  color: #eafaff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 22px;
+}
+.app { width: 100%; max-width: 480px; text-align: center; }
+h1 {
+  color: #65e5ff;
+  letter-spacing: 8px;
+  font-size: 29px;
+  margin-bottom: 5px;
+  text-shadow: 0 0 18px #00cfff;
+}
+.subtitle {
+  color: #8baec5;
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 35px;
+}
+.orb {
+  width: 190px;
+  height: 190px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  border: 2px solid #36dfff;
+  background: radial-gradient(circle, #1c6285, #071526 70%);
+  box-shadow: 0 0 25px #00cfff, inset 0 0 30px #00aaff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: pulse 3s infinite;
+}
+.orb span {
+  font-size: 48px;
+  color: #b9f6ff;
+  text-shadow: 0 0 20px #00dfff;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px #00cfff, inset 0 0 25px #0088bb; }
+  50% { box-shadow: 0 0 42px #00cfff, inset 0 0 40px #0088bb; }
+}
+#status {
+  color: #69dfff;
+  font-size: 13px;
+  margin-bottom: 25px;
+  min-height: 18px;
+}
+.panel {
+  background: rgba(9, 25, 43, 0.85);
+  border: 1px solid #174d68;
+  border-radius: 14px;
+  padding: 15px;
+  margin-top: 13px;
+  text-align: left;
+  min-height: 65px;
+  overflow-wrap: anywhere;
+}
+.panel strong {
+  color: #55dcff;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.panel p {
+  color: #d5e9f4;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+}
+#chat-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+#message {
+  flex: 1;
+  min-width: 0;
+  background: #0b1d30;
+  border: 1px solid #26708d;
+  border-radius: 25px;
+  padding: 14px 16px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+#message:focus {
+  border-color: #50dcff;
+  box-shadow: 0 0 10px #087ca0;
+}
+#send {
+  border: 0;
+  border-radius: 25px;
+  padding: 0 20px;
+  background: #0b9dc7;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+.hint {
+  color: #66869b;
+  font-size: 11px;
+  margin-top: 22px;
+  line-height: 1.5;
+}
+</style>
 </head>
 <body>
-<main>
-  <div class="top">PERSONAL AI INTERFACE</div>
+<div class="app">
   <h1>J.A.R.V.I.S.</h1>
-  <div class="sub">Just A Rather Very Intelligent System</div>
-  <div class="orb-wrap">
-    <div class="ring"></div>
-    <button id="talk" type="button">TOCCA PER<br>PARLARE</button>
+  <div class="subtitle">PERSONAL AI ASSISTANT</div>
+
+  <button class="orb" id="talk" aria-label="Parla con Jarvis">
+    <span>◉</span>
+  </button>
+
+  <div id="status">TOCCA PER PARLARE</div>
+
+  <div class="panel">
+    <strong>IL TUO MESSAGGIO</strong>
+    <p id="transcript">In attesa di un comando...</p>
   </div>
-  <div id="status" aria-live="polite">Sistema pronto · premi il pulsante</div>
-  <section class="panel">
-    <div class="label">Hai detto</div>
-    <div id="transcript">In attesa della tua voce…</div>
-  </section>
-  <section class="panel">
-    <div class="label">Jarvis</div>
-    <div id="reply">Buongiorno. Interfaccia inizializzata. Sono pronto per un primo test vocale.</div>
-  </section>
-  <div class="small">Prototipo iniziale · collegamento all'intelligenza artificiale da configurare</div>
-  <div class="note">La demo usa le funzioni vocali disponibili nel browser. Il riconoscimento vocale dipende dal supporto del browser e dai permessi del microfono. Non inserire dati aziendali riservati in questa versione.</div>
-</main>
+
+  <div class="panel">
+    <strong>JARVIS</strong>
+    <p id="reply">Buongiorno. Sono pronto. Qual è la mia prima attività?</p>
+  </div>
+
+  <form id="chat-form">
+    <input id="message" type="text"
+      placeholder="Scrivi un messaggio a Jarvis..."
+      autocomplete="off">
+    <button id="send" type="submit">INVIA</button>
+  </form>
+
+  <div class="hint">
+    Puoi parlare premendo il pulsante centrale oppure scrivere nel campo qui sopra.
+    <br>Versione demo: collegamento al modello AI da configurare.
+  </div>
+</div>
 <script>
-  const button = document.getElementById('talk');
-  const statusEl = document.getElementById('status');
-  const transcriptEl = document.getElementById('transcript');
-  const replyEl = document.getElementById('reply');
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition;
+const talkButton = document.getElementById("talk");
+const statusText = document.getElementById("status");
+const transcript = document.getElementById("transcript");
+const reply = document.getElementById("reply");
+const chatForm = document.getElementById("chat-form");
+const messageInput = document.getElementById("message");
 
-  function speak(text) {
-    if (!('speechSynthesis' in window)) {
-      statusEl.textContent = 'Sintesi vocale non supportata da questo browser.';
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'it-IT';
-    utterance.rate = 0.96;
-    window.speechSynthesis.speak(utterance);
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "it-IT";
+  utterance.rate = 1;
+  utterance.pitch = 0.9;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function respond(text) {
+  const command = text.toLowerCase().trim();
+  let answer;
+
+  if (/ciao|buongiorno|buonasera|salve/.test(command)) {
+    answer = "Buongiorno. È un piacere sentirti. Come posso aiutarti?";
+  } else if (command.includes("come stai")) {
+    answer = "Tutti i sistemi sono operativi. Pronto a lavorare.";
+  } else if (command.includes("chi sei")) {
+    answer = "Sono Jarvis, il tuo assistente personale. Al momento sono in versione dimostrativa.";
+  } else if (command.includes("cosa sai fare")) {
+    answer = "Posso ricevere i tuoi comandi vocali e scritti. Il collegamento a un'intelligenza artificiale completa e ai tuoi strumenti aziendali deve ancora essere configurato.";
+  } else if (command.includes("grazie")) {
+    answer = "Sempre a disposizione.";
+  } else {
+    answer = "Ho ricevuto il tuo messaggio: " + text + ". La connessione al modello AI non è ancora configurata. Per ora posso gestire solo alcune risposte dimostrative.";
   }
 
-  function respond(text) {
-    const normalized = text.toLowerCase();
-    let answer = 'Ho ricevuto la tua richiesta. Questa è la prima demo: il mio collegamento al modello AI e ai software aziendali deve ancora essere configurato.';
-    if (normalized.includes('ciao') || normalized.includes('buongiorno')) {
-      answer = 'Buongiorno. Sono Jarvis. La mia interfaccia vocale è attiva. Qual è la prima attività?';
-    } else if (normalized.includes('come ti chiami')) {
-      answer = 'Mi chiamo Jarvis. Sono il tuo assistente personale in fase di configurazione.';
-    } else if (normalized.includes('come stai')) {
-      answer = 'Sistemi operativi pronti. Attendo le tue istruzioni.';
-    }
-    replyEl.textContent = answer;
-    statusEl.textContent = 'Risposta pronta';
-    speak(answer);
-  }
+  reply.textContent = answer;
+  speak(answer);
+}
 
-  button.addEventListener('click', () => {
-    if (!SpeechRecognition) {
-      statusEl.textContent = 'Riconoscimento vocale non disponibile. Prova Chrome e verifica i permessi del microfono.';
-      return;
-    }
-    if (recognition) { try { recognition.stop(); } catch(e) {} }
-    recognition = new SpeechRecognition();
-    recognition.lang = 'it-IT';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onstart = () => {
-      document.body.classList.add('listening');
-      statusEl.textContent = 'Ti ascolto…';
-      transcriptEl.textContent = 'Sto ascoltando…';
-    };
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      transcriptEl.textContent = text;
-      respond(text);
-    };
-    recognition.onerror = (event) => {
-      statusEl.textContent = 'Microfono: ' + event.error + '. Controlla i permessi del sito.';
-    };
-    recognition.onend = () => document.body.classList.remove('listening');
-    try { recognition.start(); } catch(e) {
-      document.body.classList.remove('listening');
-      statusEl.textContent = 'Non riesco ad avviare il microfono. Riprova.';
+chatForm.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const text = messageInput.value.trim();
+  if (!text) return;
+
+  transcript.textContent = text;
+  messageInput.value = "";
+
+  respond(text);
+  messageInput.focus();
+});
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "it-IT";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  talkButton.addEventListener("click", function() {
+    try {
+      statusText.textContent = "TI STO ASCOLTANDO...";
+      recognition.start();
+    } catch (error) {
+      statusText.textContent = "ATTENDI E RIPROVA";
     }
   });
+
+  recognition.onresult = function(event) {
+    const text = event.results[0][0].transcript;
+    transcript.textContent = text;
+    statusText.textContent = "COMANDO RICEVUTO";
+    respond(text);
+  };
+
+  recognition.onerror = function() {
+    statusText.textContent = "MICROFONO NON DISPONIBILE";
+  };
+
+  recognition.onend = function() {
+    if (statusText.textContent === "TI STO ASCOLTANDO...") {
+      statusText.textContent = "TOCCA PER PARLARE";
+    }
+  };
+
+} else {
+  talkButton.addEventListener("click", function() {
+    statusText.textContent = "RICONOSCIMENTO VOCALE NON SUPPORTATO";
+  });
+}
 </script>
 </body>
 </html>
