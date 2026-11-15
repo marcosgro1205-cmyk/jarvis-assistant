@@ -1,9 +1,7 @@
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Metodo non consentito"
-    });
+    return res.status(405).json({ error: "Metodo non consentito" });
   }
 
   try {
@@ -23,49 +21,26 @@ export default async function handler(req, res) {
       });
     }
 
-    if (message.length > 8000) {
-      return res.status(400).json({
-        error: "Messaggio troppo lungo"
-      });
-    }
-
     const systemInstruction = `
 Sei JARVIS, l'assistente digitale personale di Marco.
-
 Parli sempre in italiano, con tono intelligente,
 professionale, cordiale e naturale.
 
-Il tuo compito è assistere Marco nella vita personale
-e professionale.
+Aiuti Marco nell'organizzazione personale e professionale,
+amministrazione, contabilità, analisi economica e finanziaria,
+controllo di gestione, commesse, cantieri, budget,
+tesoreria, ricerca, documenti e produttività.
 
-Le tue aree di supporto comprendono:
-- Organizzazione personale e professionale.
-- Amministrazione e contabilità.
-- Analisi economica e finanziaria.
-- Controllo di gestione.
-- Gestione delle commesse e dei cantieri.
-- Budget, tesoreria e pianificazione.
-- Ricerca, documenti e produttività.
-
-Sei preciso, ragioni prima di rispondere e non inventi
-informazioni.
-
+Sei preciso e non inventi informazioni.
 Quando mancano dati, fai domande.
-
-Non dichiarare mai di aver eseguito operazioni che
-non hai realmente eseguito.
-
+Non dichiarare mai di aver eseguito operazioni che non hai realmente eseguito.
 Non effettuare pagamenti, inviare comunicazioni,
-presentare dichiarazioni fiscali o registrare
-operazioni contabili definitive senza autorizzazione
-esplicita di Marco.
-
-Sei un assistente, non un sostituto delle decisioni
-di Marco.
+presentare dichiarazioni fiscali o registrare operazioni
+contabili definitive senza autorizzazione esplicita di Marco.
 `;
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
@@ -73,12 +48,15 @@ di Marco.
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          model: "gemini-3.8-flash",
-          input: message,
-          system_instruction: systemInstruction,
-          store: false,
-          generation_config: {
-            max_output_tokens: 800
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          contents: [{
+            role: "user",
+            parts: [{ text: message }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 800
           }
         })
       }
@@ -87,21 +65,18 @@ di Marco.
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini API error:", data);
-
-      return res.status(response.status).json({
-        error: "Errore durante la comunicazione con Gemini"
+      console.error("Gemini API error:", response.status, data);
+      return res.status(502).json({
+        error: "Gemini ha rifiutato la richiesta",
+        detail: data?.error?.message || ("HTTP " + response.status)
       });
     }
 
-    const steps = data.steps || [];
-
-    const answer = steps
-      .filter(step => step.type === "model_output")
-      .flatMap(step => step.content || [])
-      .filter(part => part.type === "text")
-      .map(part => part.text)
-      .join("\n");
+    const answer = (data.candidates || [])
+      .flatMap(candidate => candidate.content?.parts || [])
+      .map(part => part.text || "")
+      .join("\n")
+      .trim();
 
     if (!answer) {
       return res.status(502).json({
@@ -109,15 +84,14 @@ di Marco.
       });
     }
 
-    return res.status(200).json({
-      reply: answer
-    });
+    return res.status(200).json({ reply: answer });
 
   } catch (error) {
-    console.error("Jarvis error:", error);
+    console.error("Jarvis server error:", error);
 
     return res.status(500).json({
-      error: "Errore interno del server Jarvis"
+      error: "Errore interno del server Jarvis",
+      detail: error?.message || "Errore sconosciuto"
     });
   }
 }
