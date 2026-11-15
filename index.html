@@ -176,26 +176,44 @@ function speak(text) {
 }
 
 function respond(text) {
-  const command = text.toLowerCase().trim();
-  let answer;
+async function respond(text) {
+  reply.textContent = "Sto elaborando la tua richiesta...";
+  statusText.textContent = "JARVIS IN ELABORAZIONE...";
 
-  if (/ciao|buongiorno|buonasera|salve/.test(command)) {
-    answer = "Buongiorno. È un piacere sentirti. Come posso aiutarti?";
-  } else if (command.includes("come stai")) {
-    answer = "Tutti i sistemi sono operativi. Pronto a lavorare.";
-  } else if (command.includes("chi sei")) {
-    answer = "Sono Jarvis, il tuo assistente personale. Al momento sono in versione dimostrativa.";
-  } else if (command.includes("cosa sai fare")) {
-    answer = "Posso ricevere i tuoi comandi vocali e scritti. Il collegamento a un'intelligenza artificiale completa e ai tuoi strumenti aziendali deve ancora essere configurato.";
-  } else if (command.includes("grazie")) {
-    answer = "Sempre a disposizione.";
-  } else {
-    answer = "Ho ricevuto il tuo messaggio: " + text + ". La connessione al modello AI non è ancora configurata. Per ora posso gestire solo alcune risposte dimostrative.";
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: text
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Errore di connessione");
+    }
+
+    const answer = data.reply;
+
+    if (!answer) {
+      throw new Error("Risposta vuota");
+    }
+
+    reply.textContent = answer;
+    statusText.textContent = "SISTEMI OPERATIVI";
+
+    speak(answer);
+
+  } catch (error) {
+    console.error("Jarvis:", error);
+    reply.textContent =
+      "Non riesco a raggiungere il mio motore AI. Controlla la connessione e riprova.";
+    statusText.textContent = "CONNESSIONE NON DISPONIBILE";
   }
-
-  reply.textContent = answer;
-  speak(answer);
-}
 
 chatForm.addEventListener("submit", function(event) {
   event.preventDefault();
