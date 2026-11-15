@@ -1,7 +1,9 @@
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Metodo non consentito" });
+    return res.status(405).json({
+      error: "Metodo non consentito"
+    });
   }
 
   try {
@@ -40,7 +42,7 @@ contabili definitive senza autorizzazione esplicita di Marco.
 `;
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
         headers: {
@@ -48,15 +50,12 @@ contabili definitive senza autorizzazione esplicita di Marco.
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemInstruction }]
-          },
-          contents: [{
-            role: "user",
-            parts: [{ text: message }]
-          }],
-          generationConfig: {
-            maxOutputTokens: 800
+          model: "gemini-3.8-flash",
+          input: message,
+          system_instruction: systemInstruction,
+          store: false,
+          generation_config: {
+            max_output_tokens: 800
           }
         })
       }
@@ -67,20 +66,23 @@ contabili definitive senza autorizzazione esplicita di Marco.
     if (!response.ok) {
       console.error("Gemini API error:", response.status, data);
       return res.status(502).json({
-        error: "Gemini ha rifiutato la richiesta",
-        detail: data?.error?.message || ("HTTP " + response.status)
+        error: "Errore Gemini",
+        detail: data?.error?.message || "Richiesta non riuscita"
       });
     }
 
-    const answer = (data.candidates || [])
-      .flatMap(candidate => candidate.content?.parts || [])
-      .map(part => part.text || "")
-      .join("\n")
-      .trim();
+    const answer = data.output_text ||
+      (data.steps || [])
+        .filter(step => step.type === "model_output")
+        .flatMap(step => step.content || [])
+        .filter(part => part.type === "text")
+        .map(part => part.text || "")
+        .join("\n")
+        .trim();
 
     if (!answer) {
       return res.status(502).json({
-        error: "Gemini non ha restituito una risposta testuale"
+        error: "Gemini non ha restituito una risposta"
       });
     }
 
