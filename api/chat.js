@@ -60,9 +60,7 @@ contabili definitive senza autorizzazione esplicita di Marco.
         })
       }
     );
-const rawResponse = await response.text();
-reply.textContent = "RISPOSTA TECNICA: " + rawResponse.slice(0, 500);
-return;
+const data = await response.json();
 
     if (!response.ok) {
       console.error("Gemini API error:", response.status, data);
