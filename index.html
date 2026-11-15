@@ -175,7 +175,7 @@ function speak(text) {
   window.speechSynthesis.speak(utterance);
 }
 
-function respond(text) {
+
 async function respond(text) {
   reply.textContent = "Sto elaborando la tua richiesta...";
   statusText.textContent = "JARVIS IN ELABORAZIONE...";
@@ -213,7 +213,7 @@ async function respond(text) {
     reply.textContent =
       "Non riesco a raggiungere il mio motore AI. Controlla la connessione e riprova.";
     statusText.textContent = "CONNESSIONE NON DISPONIBILE";
-  }
+  }}
 
 chatForm.addEventListener("submit", function(event) {
   event.preventDefault();
